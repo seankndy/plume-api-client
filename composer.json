@@ -1,0 +1,24 @@
+{
+  "name": "seankndy/plume-api-client",
+  "description": "Plume API client for PHP",
+  "authors": [
+    {
+      "name": "Sean Kennedy",
+      "email": "sean@kndy.net"
+    }
+  ],
+  "keywords": [
+    "plume",
+    "opensync"
+  ],
+  "require": {
+    "php": ">=7.4",
+    "guzzlehttp/guzzle": "^7.0",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "SeanKndy\\PlumeApi\\": "src/"
+    }
+  }
+}
