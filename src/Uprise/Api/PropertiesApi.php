@@ -29,7 +29,7 @@ class PropertiesApi extends AbstractBaseApi
         bool $mduOptimizationEnabled = true,
         array $additionalProperties = []
     ): array {
-        return $this->resourceCreationRequest("/uprise/v1/partners/{$this->partnerId}/properties", array_merge([
+        return $this->resourceCreationRequest("/v1/partners/{$this->partnerId}/properties", array_merge([
             'name' => $name,
             'address' => $address,
             'city' => $city,
