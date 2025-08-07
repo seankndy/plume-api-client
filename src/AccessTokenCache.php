@@ -39,7 +39,6 @@ class AccessTokenCache
 
     public function save(string $accessToken, int $expiresIn): void
     {
-        echo "saving $accessToken\n";
         ftruncate($this->handle, 0);
         fwrite($this->handle, json_encode([
             'access_token' => $accessToken,
