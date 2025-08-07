@@ -1,10 +1,13 @@
 <?php
 
-namespace SeanKndy\PlumeApi\Api;
+namespace SeanKndy\PlumeApi\Partners\Api;
+
+use SeanKndy\PlumeApi\AbstractBaseApi;
 
 class CustomersApi extends AbstractBaseApi
 {
     public function register(
+        string $partnerId,
         string $email,
         string $name,
         string $accountId,
@@ -15,7 +18,7 @@ class CustomersApi extends AbstractBaseApi
         return $this->resourceCreationRequest('/Customers/register', array_merge([
             'email' => $email,
             'name' => $name,
-            'partnerId' => $this->client->getAppConfiguration()->partnerId,
+            'partnerId' => $partnerId,
             'accountId' => $accountId,
             'profile' => $profile,
             'acceptLanguage' => $acceptLanguage,

@@ -4,20 +4,29 @@ namespace SeanKndy\PlumeApi;
 
 class AccessTokenCache
 {
-    private string $tokenCacheFile;
+    /**
+     * @var resource
+     */
+    private $handle;
 
     public function __construct(string $tokenCacheFile)
     {
-        $this->tokenCacheFile = $tokenCacheFile;
+        if (!($this->handle = @fopen($tokenCacheFile, 'c+b'))) {
+            throw new \RuntimeException("Unable to open token cache file '{$tokenCacheFile}'.");
+        }
+    }
+
+    public function __destruct()
+    {
+        fclose($this->handle);
     }
 
     public function get(): ?string
     {
-        if (!is_readable($this->tokenCacheFile)) {
-            return null;
-        }
+        rewind($this->handle);
+        $data = stream_get_contents($this->handle);
 
-        if (!($data = @json_decode(file_get_contents($this->tokenCacheFile), true)) || !isset($data['access_token'], $data['expires_at'])) {
+        if (!$data || !($data = @json_decode($data, true)) || !isset($data['access_token'], $data['expires_at'])) {
             return null;
         }
 
@@ -30,15 +39,11 @@ class AccessTokenCache
 
     public function save(string $accessToken, int $expiresIn): void
     {
-        if (!($fp = @fopen($this->tokenCacheFile, 'w'))) {
-            throw new \RuntimeException('Unable to open token cache file \''.$this->tokenCacheFile.'\' for writing');
-        }
-
-        fwrite($fp, json_encode([
+        echo "saving $accessToken\n";
+        ftruncate($this->handle, 0);
+        fwrite($this->handle, json_encode([
             'access_token' => $accessToken,
-            'expires_at' => time() + $expiresIn,
+            'expires_at' => time()+$expiresIn,
         ]));
-
-        fclose($fp);
     }
 }

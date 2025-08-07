@@ -4,29 +4,23 @@ namespace SeanKndy\PlumeApi;
 
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\ResponseInterface;
-use SeanKndy\PlumeApi\Api\CustomersApi;
 
-class Client
+abstract class AbstractBaseClient implements ClientInterface
 {
-    private AppConfiguration $appConfiguration;
+    protected ClientConfiguration $clientConfiguration;
 
-    private AccessTokenCache $accessTokenCache;
+    protected AccessTokenCache $accessTokenCache;
 
-    private \GuzzleHttp\Client $guzzle;
+    protected \GuzzleHttp\Client $guzzle;
 
-    public function __construct(AppConfiguration $appConfiguration)
+    public function __construct(ClientConfiguration $clientConfiguration)
     {
-        $this->appConfiguration = $appConfiguration;
+        $this->clientConfiguration = $clientConfiguration;
         $this->guzzle = new \GuzzleHttp\Client([
             'http_errors' => false,
-            'timeout' => $appConfiguration->timeout,
+            'timeout' => $clientConfiguration->timeout,
         ]);
-        $this->accessTokenCache = new AccessTokenCache($appConfiguration->tokenCacheFile);
-    }
-
-    public function getAppConfiguration(): AppConfiguration
-    {
-        return $this->appConfiguration;
+        $this->accessTokenCache = new AccessTokenCache($clientConfiguration->tokenCacheFile);
     }
 
     /**
@@ -40,10 +34,13 @@ class Client
      */
     public function request(string $method, string $url, $body = null, array $headers = []): ResponseInterface
     {
-        if (is_array($body) && !isset($headers['Content-Type'])) {
-            $headers['Content-Type'] = 'application/json';
-            $headers['Accept'] = 'application/json';
+        if (is_array($body)) {
             $body = json_encode($body);
+
+            if (!isset($headers['Content-Type'])) {
+                $headers['Content-Type'] = 'application/json';
+                $headers['Accept'] = 'application/json';
+            }
         }
 
         return $this->guzzle->request($method, $url, [
@@ -65,22 +62,22 @@ class Client
     {
         $headers['Authorization'] = "Bearer " . $this->acquireAccessToken();
 
-        $url = $this->appConfiguration->apiBaseUrl . '/' . ltrim($endpoint, '/');
+        $url = rtrim($this->clientConfiguration->apiBaseUrl, '/') . '/' . ltrim($endpoint, '/');
 
         return $this->request($method, $url, $body, $headers);
     }
 
-    private function acquireAccessToken(): string
+    protected function acquireAccessToken(): string
     {
         if (!($accessToken = $this->accessTokenCache->get())) {
             // get new access token from Plume api
-            $response = $this->request('POST', $this->appConfiguration->authorizeUrl, http_build_query([
-                'scope' => 'partnerId:' . $this->appConfiguration->partnerId . ' role:partnerIdAdmin',
+            $response = $this->request('POST', $this->clientConfiguration->authorizeUrl, http_build_query([
+                'scope' => $this->clientConfiguration->scope,
                 'grant_type' => 'client_credentials',
             ]), [
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Accept' => 'application/json',
-                'Authorization' => 'Basic ' . base64_encode($this->appConfiguration->appBasicAuth),
+                'Authorization' => 'Basic ' . base64_encode($this->clientConfiguration->appBasicAuth),
             ]);
 
             if ($response->getStatusCode() !== 200) {
@@ -97,8 +94,4 @@ class Client
         return $accessToken;
     }
 
-    public function customersApi(): CustomersApi
-    {
-        return new CustomersApi($this);
-    }
 }

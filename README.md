@@ -5,17 +5,18 @@
 ```
 
 ## Plume Setup
-Login to the Plume portal (https://portal.plume.com), navigate to Configuration, then locate API Token Generation on the page.  From there, you can generate a new API app token and acquire the authorization URL and base64 encoded basic auth header.   You will need to decode that Basic authorization string and use that for the appBasicAuth parameter on the `\SeanKndy\PlumeApi\AppConfiguration` object.  This is then passed to the `\SeanKndy\PlumeApi\Client`. 
+Login to the Plume portal (https://portal.plume.com), navigate to Configuration, then locate API Token Generation on the page. From there, you can generate a new API app token and acquire the authorization URL and base64 encoded basic auth header. You will need to decode that Basic authorization string and use that for the appBasicAuth parameter on the `\SeanKndy\PlumeApi\ClientConfiguration` object. This is then passed to a concrete client such as `\SeanKndy\PlumeApi\Partners\ClientInterface` (Partners) or `\SeanKndy\PlumeApi\Uprise\Client` (Uprise). 
 
 ## Basic Usage
+
 ```php
 <?php
 
 require('vendor/autoload.php');
 
-$client = new \SeanKndy\PlumeApi\Client(
-    new \SeanKndy\PlumeApi\AppConfiguration(
-        'partnerIdHere', // provided by Plume
+$client = new \SeanKndy\PlumeApi\Partners\Client(
+    new \SeanKndy\PlumeApi\ClientConfiguration(
+        'partnerId:partneridhere role:partnerIdAdmin',, // scope, provided by Plume
         'authorization_url_here', // provided by Plume
         'user:pass', // base64 decoded Basic auth header value provided to you by Plume
         'https://piranha-gamma.prod.us-west-2.aws.plumenet.io/api/',
@@ -27,11 +28,11 @@ $client = new \SeanKndy\PlumeApi\Client(
 $response = $client->authenticatedRequest(
     'GET', // HTTP method
     '/any/endpoint/here',
-    'body', // Can also be an array which will be json-encoded automatically
+    'body', // Can also be an array, which will be json-encoded automatically
     [] // HTTP headers
 );
 
-// Customers API provides the most commonly needed Customers API functionality so you don't have to build the requests yourself.  They throw \RuntimeExceptions for non-OK HTTP status codes. 
+// Customers API provides the most commonly used Customers API functionality, so you don't have to build the requests yourself.  They throw \RuntimeExceptions for non-OK HTTP status codes. 
 $customersApi = $client->customersApi();
 $customer = $customersApi->register(
     'foo@bar.com',
@@ -41,14 +42,14 @@ $customer = $customersApi->register(
 $matchingCustomers = $customersApi->search('email', 'foo@bar.com'); // search by email
 $matchingCustomers = $customersApi->search('accountId', '12345'); // search by accountId
 
-// claim or unclaim nodes to a customer location
+// Claim or unclaim nodes to a customer location
 $node = $customersApi->claimNode('customerIdHere', 'locationIdHere', 'deviceSerialNumberHere');
 $customersApi->unclaimNode('customerIdHere', 'locationIdHere', 'nodeId');
 
-// get the nodes for a customer location
+// Get the nodes for a customer location
 $nodes = $customersApi->getNodes('customerIdHere', 'locationIdHere');
 
-// set pppoe wan configuration
+// Set PPPoE WAN configuration
 $customersApi->updateWanConfiguration('customerIdHere', 'locationIdHere', [
     'pppoe' => [
        'enabled' => true,
@@ -57,6 +58,6 @@ $customersApi->updateWanConfiguration('customerIdHere', 'locationIdHere', [
     ]
 ]);
 
-// create a wifi network
+// Create a Wi-Fi network
 $network = $customersApi->createWifiNetwork('customerIdHere', 'locationIdHere', 'ssid_here', 'passphrase_here');
 ```

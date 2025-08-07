@@ -1,15 +1,14 @@
 <?php
 
-namespace SeanKndy\PlumeApi\Api;
+namespace SeanKndy\PlumeApi;
 
 use Psr\Http\Message\ResponseInterface;
-use SeanKndy\PlumeApi\Client;
 
 abstract class AbstractBaseApi
 {
-    protected Client $client;
+    protected ClientInterface $client;
 
-    public function __construct(Client $client)
+    public function __construct(ClientInterface $client)
     {
         $this->client = $client;
     }

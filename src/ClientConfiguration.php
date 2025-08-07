@@ -2,9 +2,9 @@
 
 namespace SeanKndy\PlumeApi;
 
-class AppConfiguration
+class ClientConfiguration
 {
-    public string $partnerId;
+    public string $scope;
 
     public string $authorizeUrl;
 
@@ -17,14 +17,14 @@ class AppConfiguration
     public int $timeout;
 
     public function __construct(
-        string $partnerId,
+        string $scope,
         string $authorizeUrl,
         string $appBasicAuth,
         string $apiBaseUrl,
-        string $tokenCacheFile,
+        string $tokenCacheFile = 'php://memory',
         int    $timeout = 10
     ) {
-        $this->partnerId = $partnerId;
+        $this->scope = $scope;
         $this->authorizeUrl = $authorizeUrl;
         $this->appBasicAuth = $appBasicAuth;
         $this->apiBaseUrl = $apiBaseUrl;
